@@ -1,0 +1,294 @@
+openapi: 3.0.3
+info:
+  title: Marketplace Pro - Returns & Refunds API
+  description: API endpoints for domain 4 covering product returns, approvals, and money refund logic.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000/api
+    description: Local development server
+tags:
+  - name: Returns
+    description: Buyer return management endpoints
+  - name: Admin Returns
+    description: Administrative endpoints for return approvals
+  - name: Refunds
+    description: Refund status tracking
+
+paths:
+  /returns:
+    get:
+      tags:
+        - Returns
+      summary: List my returns
+      description: Returns a paginated list of all return requests made by the authenticated buyer.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of return requests.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrderReturn'
+                  message:
+                    type: string
+                    example: 'Retornos del usuario'
+
+    post:
+      tags:
+        - Returns
+      summary: Submit a new return request
+      description: Buyers can submit an order return request if the order status is "delivered".
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - order_id
+                - reason
+              properties:
+                order_id:
+                  type: integer
+                  description: The ID of the delivered order.
+                  example: 1
+                reason:
+                  type: string
+                  description: Detailed description of why the product is being returned.
+                  example: 'El producto llegó dañado y no enciende.'
+      responses:
+        '201':
+          description: Return request created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/OrderReturn'
+                  message:
+                    type: string
+                    example: 'Return request submitted successfully'
+        '403':
+          description: Return stringently not eligible.
+        '422':
+          description: Validation errors.
+
+  /returns/{id}:
+    get:
+      tags:
+        - Returns
+      summary: Get return details
+      description: Buyers can view specific details about a return requested by them.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Specific return context.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/OrderReturn'
+                  message:
+                    type: string
+                    example: 'Return details'
+        '404':
+          description: Not found.
+
+  /refunds/{id}:
+    get:
+      tags:
+        - Refunds
+      summary: Get refund details
+      description: Get details concerning a specific approved refund payload.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Refund details payload.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Refund'
+                  message:
+                    type: string
+                    example: 'Refund details'
+
+  /admin/returns:
+    get:
+      tags:
+        - Admin Returns
+      summary: List all returns (Admin)
+      description: Returns a paginated list of all order returns across the system (Requires `manage-returns` permission).
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Full list of returns.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrderReturn'
+
+  /admin/returns/{id}:
+    get:
+      tags:
+        - Admin Returns
+      summary: View return detail (Admin)
+      description: Returns deep specifics on an order return awaiting processing.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deep Return Context.
+
+  /admin/returns/{id}/status:
+    put:
+      tags:
+        - Admin Returns
+      summary: Update returning status
+      description: Admin can approve or reject a return. When approved, a Refund object is automatically generated, inventory resets, and parent order returns close as 'completed'.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [approved, rejected]
+                  example: approved
+                admin_notes:
+                  type: string
+                  example: "Defecto de fábrica validado, procediendo con stock relist."
+      responses:
+        '200':
+          description: Return successfully updated.
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    OrderReturn:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        order_id:
+          type: integer
+          example: 10
+        buyer_id:
+          type: integer
+          example: 5
+        reason:
+          type: string
+          example: "Me llegó incompleto."
+        admin_notes:
+          type: string
+          nullable: true
+          example: "Verificado defecto visual."
+        status:
+          type: string
+          enum: [pending, approved, rejected, completed]
+          example: pending
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Refund:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        order_return_id:
+          type: integer
+          example: 1
+        payment_id:
+          type: integer
+          example: 45
+        amount:
+          type: number
+          format: float
+          example: 1299.50
+        status:
+          type: string
+          enum: [pending, processed, failed]
+          example: processed
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time

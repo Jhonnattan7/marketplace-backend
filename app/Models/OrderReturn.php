@@ -2,16 +2,20 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OrderReturn extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'buyer_id',
         'order_id',
         'reason',
         'status',
+        'admin_notes',
         'resolved_at',
     ];
 
@@ -29,20 +33,26 @@ class OrderReturn extends Model
         return $this->belongsTo(User::class, 'buyer_id');
     }
 
+    public function refund()
+    {
+        return $this->hasOne(Refund::class);
+    }
+
     public function approve(): void
     {
         $this->update([
             'status' => 'approved',
             'resolved_at' => now(),
         ]);
-
-        $this->order->payment->markAsRefunded();
+        
+        // Stock restoration and refund are handled via RefundService
     }
 
-    public function reject(): void
+    public function reject(?string $notes = null): void
     {
         $this->update([
             'status' => 'rejected',
+            'admin_notes' => $notes,
             'resolved_at' => now(),
         ]);
     }

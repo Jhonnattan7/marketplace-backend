@@ -43,4 +43,21 @@ Route::middleware('auth:sanctum')->group(function () {
     // Pagos
     Route::post('/payments', [PaymentController::class, 'store']);
     Route::get('/payments/{payment}', [PaymentController::class, 'show']);
+
+    // Devoluciones (Comprador)
+    Route::middleware('role:buyer')->group(function() {
+        Route::post('/returns', [\App\Http\Controllers\Api\ReturnController::class, 'store']);
+        Route::get('/returns', [\App\Http\Controllers\Api\ReturnController::class, 'index']);
+        Route::get('/returns/{return}', [\App\Http\Controllers\Api\ReturnController::class, 'show']);
+        
+        // Reembolsos
+        Route::get('/refunds/{id}', [\App\Http\Controllers\Api\RefundController::class, 'show']);
+    });
+
+    // Devoluciones (Admin)
+    Route::middleware('permission:manage-returns')->group(function() {
+        Route::get('/admin/returns', [\App\Http\Controllers\Api\AdminReturnController::class, 'index']);
+        Route::get('/admin/returns/{id}', [\App\Http\Controllers\Api\AdminReturnController::class, 'show']);
+        Route::put('/admin/returns/{id}/status', [\App\Http\Controllers\Api\AdminReturnController::class, 'updateStatus']);
+    });
 });
