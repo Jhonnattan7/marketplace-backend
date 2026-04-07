@@ -1,0 +1,212 @@
+openapi: 3.0.3
+info:
+  title: Marketplace Product Flow API
+  version: 1.0.0
+  description: Endpoints for seller product catalog management.
+servers:
+  - url: http://localhost:8000/api
+    description: Local API server
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    ProductInput:
+      type: object
+      required:
+        - name
+        - price
+        - stock
+        - category_id
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          example: Laptop Gamer
+        description:
+          type: string
+          nullable: true
+          example: Una laptop muy potente
+        price:
+          type: number
+          format: float
+          minimum: 0.01
+          example: 999.99
+        stock:
+          type: integer
+          minimum: 0
+          example: 5
+        category_id:
+          type: integer
+          example: 2
+    ProductUpdateInput:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          example: Laptop Gamer Pro
+        description:
+          type: string
+          nullable: true
+        price:
+          type: number
+          format: float
+          minimum: 0.01
+        stock:
+          type: integer
+          minimum: 0
+        category_id:
+          type: integer
+        status:
+          type: string
+          enum: [active, inactive]
+    ProductResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        seller_id:
+          type: integer
+        seller_profile_id:
+          type: integer
+          nullable: true
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        price:
+          type: string
+          example: "999.99"
+        stock:
+          type: integer
+        status:
+          type: string
+        category:
+          type: object
+          properties:
+            id:
+              type: integer
+              nullable: true
+            name:
+              type: string
+              nullable: true
+        seller:
+          type: object
+          properties:
+            id:
+              type: integer
+              nullable: true
+            store_name:
+              type: string
+              nullable: true
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+paths:
+  /products:
+    get:
+      summary: List active products
+      description: Public endpoint.
+      responses:
+        '200':
+          description: Product list
+    post:
+      summary: Create product
+      description: Seller only.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '201':
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+  /products/{id}:
+    get:
+      summary: Get product detail
+      description: Public endpoint.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Product detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+    put:
+      summary: Update product
+      description: Owner seller only.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductUpdateInput'
+      responses:
+        '200':
+          description: Product updated
+        '403':
+          description: Forbidden
+        '422':
+          description: Validation error
+    delete:
+      summary: Delete product
+      description: Owner seller only.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Product deleted
+        '403':
+          description: Forbidden
+  /seller/products:
+    get:
+      summary: List seller products
+      description: Authenticated seller products only.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Seller product list
+        '403':
+          description: Forbidden

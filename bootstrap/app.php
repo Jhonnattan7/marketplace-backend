@@ -6,7 +6,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
- use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))

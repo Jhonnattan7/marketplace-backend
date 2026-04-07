@@ -3,14 +3,15 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 
 class RoleSeeder extends Seeder
 {
     public function run(): void
     {
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app('Spatie\\Permission\\PermissionRegistrar')->forgetCachedPermissions();
+
+        $permissionModel = config('permission.models.permission');
+        $roleModel = config('permission.models.role');
 
         $permissions = [
             // Admin
@@ -40,12 +41,17 @@ class RoleSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission]);
+            $permissionModel::firstOrCreate([
+                'name' => $permission,
+                'guard_name' => 'web',
+            ]);
         }
 
-        $admin = Role::firstOrCreate(['name' => 'admin']);
-        $vendedor = Role::firstOrCreate(['name' => 'vendedor']);
-        $comprador = Role::firstOrCreate(['name' => 'comprador']);
+        $admin = $roleModel::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        $vendedor = $roleModel::firstOrCreate(['name' => 'vendedor', 'guard_name' => 'web']);
+        $comprador = $roleModel::firstOrCreate(['name' => 'comprador', 'guard_name' => 'web']);
+        $seller = $roleModel::firstOrCreate(['name' => 'seller', 'guard_name' => 'web']);
+        $buyer = $roleModel::firstOrCreate(['name' => 'buyer', 'guard_name' => 'web']);
 
         $admin->syncPermissions([
             'manage-users',
@@ -67,6 +73,26 @@ class RoleSeeder extends Seeder
         ]);
 
         $comprador->syncPermissions([
+            'create-order',
+            'manage-cart',
+            'create-return',
+            'view-own-orders',
+            'view-own-payments',
+            'view-return-status',
+            'view-products',
+        ]);
+
+        $seller->syncPermissions([
+            'create-product',
+            'edit-own-product',
+            'delete-own-product',
+            'view-seller-orders',
+            'view-received-payments',
+            'view-return-status',
+            'view-products',
+        ]);
+
+        $buyer->syncPermissions([
             'create-order',
             'manage-cart',
             'create-return',

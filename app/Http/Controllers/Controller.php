@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 /**
  * @OA\Info(
  * title="Marketplace API - Proyecto de Cátedra",
@@ -33,11 +35,13 @@ namespace App\Http\Controllers;
  * @OA\Property(property="price", type="number", format="float", example=1200.50),
  * @OA\Property(property="stock", type="integer", example=10),
  * @OA\Property(property="category_id", type="integer", example=2),
- * @OA\Property(property="seller_id", type="integer", example=3)
+ * @OA\Property(property="seller_id", type="integer", example=3),
+ * @OA\Property(property="seller_profile_id", type="integer", example=5)
  * )
  * @OA\Schema(schema="Category", title="Categoría",
  * @OA\Property(property="id", type="integer", example=1),
- * @OA\Property(property="name", type="string", example="Electrónica")
+ * @OA\Property(property="name", type="string", example="Electrónica"),
+ * @OA\Property(property="description", type="string", example="Computadoras y accesorios")
  * )
  * @OA\Schema(schema="Order", title="Pedido",
  * @OA\Property(property="id", type="integer", example=1),
@@ -88,5 +92,5 @@ namespace App\Http\Controllers;
  */
 abstract class Controller
 {
-    //
+    use AuthorizesRequests;
 }
