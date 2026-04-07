@@ -87,7 +87,7 @@ test('vendedor puede eliminar su propio producto', function () {
     $response->assertStatus(200)
         ->assertJsonPath('message', 'Producto eliminado correctamente.');
 
-    $this->assertDatabaseMissing('products', ['id' => $product->id]);
+    $this->assertSoftDeleted('products', ['id' => $product->id]);
 });
 
 test('vendedor ve solo sus propios productos', function () {

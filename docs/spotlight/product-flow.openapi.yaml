@@ -103,6 +103,10 @@ components:
             store_name:
               type: string
               nullable: true
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
     ErrorResponse:
       type: object
       properties:
@@ -185,7 +189,7 @@ paths:
           description: Validation error
     delete:
       summary: Delete product
-      description: Owner seller only.
+      description: Owner seller only. Performs soft delete.
       security:
         - bearerAuth: []
       parameters:
@@ -196,7 +200,7 @@ paths:
             type: integer
       responses:
         '200':
-          description: Product deleted
+          description: Product soft deleted
         '403':
           description: Forbidden
   /seller/products:
@@ -208,5 +212,16 @@ paths:
       responses:
         '200':
           description: Seller product list
+        '403':
+          description: Forbidden
+  /seller/products/deleted:
+    get:
+      summary: List deleted seller products
+      description: Authenticated seller soft-deleted products only.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Seller deleted product list
         '403':
           description: Forbidden

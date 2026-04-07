@@ -90,4 +90,20 @@ class ProductController extends Controller
 
         return ProductResource::collection($products);
     }
+
+    public function deletedProducts(Request $request): AnonymousResourceCollection
+    {
+        $sellerProfile = $request->user()->sellerProfile;
+
+        if (!$sellerProfile) {
+            abort(403, 'No tienes un perfil de vendedor.');
+        }
+
+        $products = Product::onlyTrashed()
+            ->with(['category', 'sellerProfile'])
+            ->where('seller_profile_id', $sellerProfile->id)
+            ->paginate(15);
+
+        return ProductResource::collection($products);
+    }
 }
