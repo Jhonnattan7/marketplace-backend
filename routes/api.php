@@ -60,4 +60,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/admin/returns/{id}', [\App\Http\Controllers\Api\AdminReturnController::class, 'show']);
         Route::put('/admin/returns/{id}/status', [\App\Http\Controllers\Api\AdminReturnController::class, 'updateStatus']);
     });
+
+    //Perfiles 
+    Route::middleware('role:buyer|comprador')->group(function () {
+        Route::get('/buyer/profile', [\App\Http\Controllers\Api\ProfileController::class, 'showBuyerProfile']);
+        Route::put('/buyer/profile', [\App\Http\Controllers\Api\ProfileController::class, 'updateBuyerProfile']);
+    });
+
+    Route::middleware('role:seller|vendedor')->group(function () {
+        Route::get('/seller/profile', [\App\Http\Controllers\Api\ProfileController::class, 'showSellerProfile']);
+        Route::put('/seller/profile', [\App\Http\Controllers\Api\ProfileController::class, 'updateSellerProfile']);
+    });
+
 });

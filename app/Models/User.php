@@ -60,4 +60,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(OrderReturn::class, 'buyer_id');
     }
+
+    public function buyerProfile(): HasOne
+    {
+        return $this->hasOne(BuyerProfile::class);
+    }
 }
