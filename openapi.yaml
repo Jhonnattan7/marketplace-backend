@@ -1,0 +1,118 @@
+openapi: 3.0.0
+info:
+  title: Marketplace Backend API
+  description: A comprehensive Laravel marketplace API supporting users, products, orders, payments, and returns management
+  version: 1.0.0
+  contact:
+    name: API Support
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.marketplace.com
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Products
+    description: Product management and catalog
+  - name: Orders
+    description: Order creation and management
+  - name: Payments
+    description: Payment processing and management
+  - name: Returns
+    description: Order returns and refunds
+  - name: User Profiles
+    description: Buyer and seller profile management
+  - name: Admin
+    description: Administrative operations
+
+paths:
+  /api/auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      description: Create a new user account with email and password, assigning either buyer or seller role
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+                - password_confirmation
+                - role
+              properties:
+                name:
+                  type: string
+                  example: Juan Pérez
+                  minLength: 1
+                  maxLength: 255
+                email:
+                  type: string
+                  format: email
+                  example: juan@example.com
+                password:
+                  type: string
+                  format: password
+                  example: MySecurePassword123
+                  minLength: 8
+                password_confirmation:
+                  type: string
+                  format: password
+                  example: MySecurePassword123
+                  minLength: 8
+                role:
+                  type: string
+                  enum:
+                    - buyer
+                    - seller
+                  example: buyer
+                phone:
+                  type: string
+                  example: "+1234567890"
+                  nullable: true
+      responses:
+        '201':
+          description: User successfully registered
+        '422':
+          description: Validation error
+
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login user
+      description: Authenticate user with email and password to receive API token
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: Login successful
+        '401':
+          description: Invalid credentials
+        '422':
+          description: Validation error

@@ -158,7 +158,6 @@ class ProductSeeder extends Seeder
                 $randomCategory = $categories->random();
                 
                 Product::create([
-                    'seller_id' => $seller->id,
                     'seller_profile_id' => $sellerProfile->id,
                     'category_id' => $randomCategory->id,
                     'name' => $productData['name'],
@@ -183,5 +182,13 @@ class ProductSeeder extends Seeder
         if (!$buyer->hasRole('buyer')) {
             $buyer->assignRole('buyer');
         }
+
+        \App\Models\BuyerProfile::firstOrCreate([
+            'user_id' => $buyer->id,
+        ], [
+            'address' => '123 Fake Street',
+            'city' => 'Test City',
+            'country' => 'Test Country',
+        ]);
     }
 }

@@ -11,8 +11,8 @@ class OrderReturn extends Model
     use HasFactory;
 
     protected $fillable = [
-        'buyer_id',
         'order_id',
+        'buyer_id',
         'reason',
         'status',
         'admin_notes',
@@ -26,11 +26,6 @@ class OrderReturn extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
-    }
-
-    public function buyer(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'buyer_id');
     }
 
     public function refund()

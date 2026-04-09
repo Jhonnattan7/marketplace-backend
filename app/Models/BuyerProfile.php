@@ -15,4 +15,9 @@ class BuyerProfile extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function orders(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Order::class, 'buyer_id');
+    }
 }

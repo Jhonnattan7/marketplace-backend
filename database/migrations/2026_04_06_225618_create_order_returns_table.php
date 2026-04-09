@@ -19,7 +19,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique('order_id');
-            $table->index(['buyer_id', 'status']);
+            $table->index('status');
         });
     }
 

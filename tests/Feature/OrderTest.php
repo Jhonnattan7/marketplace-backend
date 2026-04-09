@@ -80,7 +80,6 @@ function createProductForSeller(User $seller, array $attrs = []): Product
     $profile = $seller->sellerProfile;
     return Product::factory()->create(array_merge([
         'seller_profile_id' => $profile->id,
-        'seller_id'         => $seller->id,
         'status'            => 'active',
         'stock'             => 50,
     ], $attrs));
@@ -281,7 +280,7 @@ test('vendedor puede cambiar estado de pedido paid → shipped', function () {
         'unit_price' => 100,
     ]);
 
-    $response = $this->actingAs($seller)->putJson("/api/seller/orders/{$order->id}/status", [
+    $response = $this->actingAs($seller)->patchJson("/api/seller/orders/{$order->id}/status", [
         'status' => 'shipped',
     ]);
 
@@ -305,7 +304,7 @@ test('no se puede hacer transición inválida pendiente → shipped', function (
         'unit_price' => 100,
     ]);
 
-    $response = $this->actingAs($seller)->putJson("/api/seller/orders/{$order->id}/status", [
+    $response = $this->actingAs($seller)->patchJson("/api/seller/orders/{$order->id}/status", [
         'status' => 'shipped',
     ]);
 
@@ -328,7 +327,7 @@ test('cancelar pedido restaura el stock', function () {
         'unit_price' => 66.67,
     ]);
 
-    $this->actingAs($seller)->putJson("/api/seller/orders/{$order->id}/status", [
+    $this->actingAs($seller)->patchJson("/api/seller/orders/{$order->id}/status", [
         'status' => 'cancelled',
     ]);
 
@@ -481,7 +480,7 @@ test('flujo completo de compra: crear pedido, pagar y confirmar envío', functio
         ->assertJsonPath('data.status', 'completed');
 
     // Step 3: Seller ships
-    $shipResponse = $this->actingAs($seller)->putJson("/api/seller/orders/{$orderId}/status", [
+    $shipResponse = $this->actingAs($seller)->patchJson("/api/seller/orders/{$orderId}/status", [
         'status' => 'shipped',
     ]);
 
@@ -489,7 +488,7 @@ test('flujo completo de compra: crear pedido, pagar y confirmar envío', functio
         ->assertJsonPath('data.status', 'shipped');
 
     // Step 4: Seller marks as delivered
-    $deliverResponse = $this->actingAs($seller)->putJson("/api/seller/orders/{$orderId}/status", [
+    $deliverResponse = $this->actingAs($seller)->patchJson("/api/seller/orders/{$orderId}/status", [
         'status' => 'delivered',
     ]);
 

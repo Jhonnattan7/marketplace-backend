@@ -18,7 +18,7 @@ class ReturnService
      * 
      * @throws ReturnNotEligibleException
      */
-    public function submitRequest(Order $order, string $reason): OrderReturn
+    public function submitRequest(Order $order, string $reason, int $buyerId): OrderReturn
     {
         if (!$this->eligibilityService->isEligible($order)) {
             throw new ReturnNotEligibleException();
@@ -26,7 +26,7 @@ class ReturnService
 
         $orderReturn = OrderReturn::create([
             'order_id' => $order->id,
-            'buyer_id' => $order->buyer_id,
+            'buyer_id' => $buyerId,
             'reason' => $reason,
             'status' => 'pending',
         ]);

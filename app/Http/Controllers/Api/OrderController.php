@@ -47,7 +47,6 @@ class OrderController extends Controller
      */
     public function store(StoreOrderRequest $request): JsonResponse
     {
-        Gate::authorize('is-buyer');
         $this->authorize('create', Order::class);
 
         $validated = $request->validated();
@@ -83,8 +82,13 @@ class OrderController extends Controller
                 ];
             }
 
+            $buyerProfileId = $request->user()->buyerProfile?->id;
+            if (!$buyerProfileId) {
+                abort(403, "No tienes perfil de comprador activo.");
+            }
+
             $order = Order::create([
-                'buyer_id' => $request->user()->id,
+                'buyer_id' => $buyerProfileId,
                 'status' => 'pending',
                 'total' => $total,
                 'notes' => $validated['notes'] ?? null,
@@ -113,19 +117,21 @@ class OrderController extends Controller
      *   @OA\Response(response=200, description="Lista de pedidos del comprador")
      * )
      */
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(Request $request)
     {
         $this->authorize('viewAny', Order::class);
 
+        $buyerProfileId = $request->user()->buyerProfile?->id;
+
         $query = Order::with(['items.product', 'payment'])
-            ->where('buyer_id', $request->user()->id)
+            ->where('buyer_id', $buyerProfileId)
             ->latest();
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        return OrderResource::collection($query->paginate(15));
+        return $this->successResponse(OrderResource::collection($query->paginate(15)));
     }
 
     /**
@@ -162,15 +168,15 @@ class OrderController extends Controller
      *   @OA\Response(response=403, description="No autorizado")
      * )
      */
-    public function sellerOrders(Request $request): AnonymousResourceCollection
+    public function sellerOrders(Request $request)
     {
-        Gate::authorize('is-seller');
+        $this->authorize('viewAny', Order::class);
 
-        $sellerId = $request->user()->id;
+        $sellerProfileId = $request->user()->sellerProfile?->id;
 
         $query = Order::with(['items.product', 'payment', 'buyer'])
-            ->whereHas('items.product', function ($q) use ($sellerId) {
-                $q->where('seller_id', $sellerId);
+            ->whereHas('items.product', function ($q) use ($sellerProfileId) {
+                $q->where('seller_profile_id', $sellerProfileId);
             })
             ->latest();
 
@@ -178,7 +184,7 @@ class OrderController extends Controller
             $query->where('status', $request->status);
         }
 
-        return OrderResource::collection($query->paginate(15));
+        return $this->successResponse(OrderResource::collection($query->paginate(15)));
     }
 
     /**
@@ -203,12 +209,12 @@ class OrderController extends Controller
      */
     public function updateStatus(UpdateOrderStatusRequest $request, Order $order): JsonResponse
     {
-        Gate::authorize('is-seller');
+        $this->authorize('updateStatus', $order);
 
         // Verify seller owns at least one product in the order
-        $sellerId = $request->user()->id;
+        $sellerProfileId = $request->user()->sellerProfile?->id;
         $hasProducts = $order->items()
-            ->whereHas('product', fn($q) => $q->where('seller_id', $sellerId))
+            ->whereHas('product', fn($q) => $q->where('seller_profile_id', $sellerProfileId))
             ->exists();
 
         if (!$hasProducts) {

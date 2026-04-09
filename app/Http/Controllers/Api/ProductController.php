@@ -14,13 +14,15 @@ use Illuminate\Support\Facades\Gate;
 
 class ProductController extends Controller
 {
-    public function index(): AnonymousResourceCollection
+    use \App\Traits\ApiResponse;
+
+    public function index(): AnonymousResourceCollection|JsonResponse
     {
         $products = Product::with(['category', 'sellerProfile'])
             ->where('status', 'active')
             ->paginate(15);
 
-        return ProductResource::collection($products);
+        return $this->successResponse(ProductResource::collection($products));
     }
 
     public function show(Product $product): ProductResource
@@ -32,7 +34,6 @@ class ProductController extends Controller
 
     public function store(StoreProductRequest $request): JsonResponse
     {
-        Gate::authorize('is-seller');
         $this->authorize('create', Product::class);
 
         $sellerProfile = $request->user()->sellerProfile;
@@ -76,8 +77,9 @@ class ProductController extends Controller
         ]);
     }
 
-    public function myProducts(Request $request): AnonymousResourceCollection
+    public function myProducts(Request $request)
     {
+        $this->authorize('viewAny', Product::class);
         $sellerProfile = $request->user()->sellerProfile;
 
         if (!$sellerProfile) {
@@ -88,11 +90,12 @@ class ProductController extends Controller
             ->where('seller_profile_id', $sellerProfile->id)
             ->paginate(15);
 
-        return ProductResource::collection($products);
+        return $this->successResponse(ProductResource::collection($products));
     }
 
-    public function deletedProducts(Request $request): AnonymousResourceCollection
+    public function deletedProducts(Request $request)
     {
+        $this->authorize('viewAny', Product::class);
         $sellerProfile = $request->user()->sellerProfile;
 
         if (!$sellerProfile) {
@@ -104,6 +107,6 @@ class ProductController extends Controller
             ->where('seller_profile_id', $sellerProfile->id)
             ->paginate(15);
 
-        return ProductResource::collection($products);
+        return $this->successResponse(ProductResource::collection($products));
     }
 }

@@ -10,17 +10,17 @@ class OrderReturnPolicy
     // Buyer Methods
     public function viewAny(User $user): bool
     {
-        return $user->hasRole('buyer');
+        return $user->hasPermissionTo('view-own-orders');
     }
 
     public function view(User $user, OrderReturn $return): bool
     {
-        return $user->hasRole('buyer') && $user->id === $return->buyer_id;
+        return $user->hasPermissionTo('view-own-orders') && $user->buyerProfile?->id === $return->order->buyer_id;
     }
 
     public function create(User $user): bool
     {
-        return $user->hasRole('buyer');
+        return $user->hasPermissionTo('create-return');
     }
 
     // Admin Methods

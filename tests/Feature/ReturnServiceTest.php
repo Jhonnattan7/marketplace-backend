@@ -19,7 +19,7 @@ it('creates a return successfully if eligible and dispatches event', function ()
     $reason = 'Item is broken.';
 
     $service = new ReturnService(new ReturnEligibilityService());
-    $orderReturn = $service->submitRequest($order, $reason);
+    $orderReturn = $service->submitRequest($order, $reason, $user->id);
 
     expect($orderReturn->id)->not->toBeNull()
         ->and($orderReturn->order_id)->toBe($order->id)

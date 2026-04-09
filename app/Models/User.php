@@ -34,17 +34,7 @@ class User extends Authenticatable
         'is_active' => 'boolean',
     ];
 
-    // Como vendedor
-    public function products(): HasMany
-    {
-        return $this->hasMany(Product::class, 'seller_id');
-    }
 
-    // Como comprador
-    public function orders(): HasMany
-    {
-        return $this->hasMany(Order::class, 'buyer_id');
-    }
 
     public function cart(): HasOne
     {
@@ -56,10 +46,7 @@ class User extends Authenticatable
         return $this->hasOne(SellerProfile::class);
     }
 
-    public function orderReturns(): HasMany
-    {
-        return $this->hasMany(OrderReturn::class, 'buyer_id');
-    }
+
 
     public function buyerProfile(): HasOne
     {

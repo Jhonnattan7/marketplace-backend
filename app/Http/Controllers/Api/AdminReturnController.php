@@ -17,27 +17,27 @@ class AdminReturnController extends Controller
 {
     use ApiResponse;
 
-    public function index(Request $request): OrderReturnCollection
+    public function index(Request $request)
     {
         Gate::authorize('viewAnyAdmin', OrderReturn::class);
 
         $returns = OrderReturn::latest()->paginate();
 
-        return new OrderReturnCollection($returns);
+        return $this->successResponse(new OrderReturnCollection($returns));
     }
 
-    public function show($id): JsonResponse
+    public function show(OrderReturn $return): JsonResponse
     {
-        $return = OrderReturn::findOrFail($id);
+        // Model binding handles the 404
         
         Gate::authorize('viewAdmin', $return);
 
         return $this->successResponse(new OrderReturnResource($return));
     }
 
-    public function updateStatus(UpdateReturnStatusRequest $request, $id, RefundService $refundService): JsonResponse
+    public function updateStatus(UpdateReturnStatusRequest $request, OrderReturn $return, RefundService $refundService): JsonResponse
     {
-        $return = OrderReturn::findOrFail($id);
+        // Model binding handles the 404
 
         Gate::authorize('updateAdmin', $return);
         

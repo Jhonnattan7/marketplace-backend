@@ -33,6 +33,7 @@ it('can reject a return with notes', function () {
         'admin_notes' => 'Product does not qualify according to policy.'
     ]);
     
+    $response->dump();
     $response->assertOk()
              ->assertJsonPath('data.status', 'rejected')
              ->assertJsonPath('data.admin_notes', 'Product does not qualify according to policy.');

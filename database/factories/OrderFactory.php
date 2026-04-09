@@ -16,7 +16,7 @@ class OrderFactory extends Factory
     public function definition(): array
     {
         return [
-            'buyer_id' => User::factory(),
+            'buyer_id' => \App\Models\BuyerProfile::factory(),
             'status'   => 'pending',
             'total'    => $this->faker->randomFloat(2, 10, 5000),
             'notes'    => $this->faker->optional()->sentence(),

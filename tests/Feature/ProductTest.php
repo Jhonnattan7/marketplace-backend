@@ -15,6 +15,15 @@ beforeEach(function () {
     foreach (['admin', 'seller', 'buyer', 'vendedor', 'comprador'] as $role) {
         $roleModel::firstOrCreate(['name' => $role, 'guard_name' => 'web']);
     }
+
+    $permModel = config('permission.models.permission');
+    $permModel::firstOrCreate(['name' => 'create-product', 'guard_name' => 'web']);
+    $permModel::firstOrCreate(['name' => 'edit-own-product', 'guard_name' => 'web']);
+    $permModel::firstOrCreate(['name' => 'delete-own-product', 'guard_name' => 'web']);
+    $permModel::firstOrCreate(['name' => 'view-products', 'guard_name' => 'web']);
+
+    $sellerRole = $roleModel::firstOrCreate(['name' => 'seller', 'guard_name' => 'web']);
+    $sellerRole->syncPermissions(['create-product', 'edit-own-product', 'delete-own-product', 'view-products']);
 });
 
 function makeUserWithRole(string $role): User

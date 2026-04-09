@@ -19,15 +19,19 @@ class ReturnController extends Controller
 {
     use ApiResponse;
 
-    public function index(Request $request): OrderReturnCollection
+    public function index(Request $request)
     {
         Gate::authorize('viewAny', OrderReturn::class);
 
-        $returns = OrderReturn::where('buyer_id', $request->user()->id)
+        $buyerProfileId = $request->user()->buyerProfile?->id;
+
+        $returns = OrderReturn::whereHas('order', function ($query) use ($buyerProfileId) {
+            $query->where('buyer_id', $buyerProfileId);
+        })
             ->latest()
             ->paginate();
 
-        return new OrderReturnCollection($returns);
+        return $this->successResponse(new OrderReturnCollection($returns));
     }
 
     public function store(StoreReturnRequest $request, ReturnService $service): JsonResponse
@@ -35,9 +39,10 @@ class ReturnController extends Controller
         Gate::authorize('create', OrderReturn::class);
 
         $order = Order::findOrFail($request->order_id);
+        $buyerId = $request->user()->buyerProfile->id;
 
         try {
-            $orderReturn = $service->submitRequest($order, $request->reason);
+            $orderReturn = $service->submitRequest($order, $request->reason, $buyerId);
             
             return $this->successResponse(
                 new OrderReturnResource($orderReturn),

@@ -1,17 +1,26 @@
 <?php
 
+use App\Models\BuyerProfile;
 use App\Models\OrderReturn;
 use App\Models\Refund;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    Role::firstOrCreate(['name' => 'buyer']);
+    app('Spatie\\Permission\\PermissionRegistrar')->forgetCachedPermissions();
+
+    Permission::firstOrCreate(['name' => 'view-own-orders', 'guard_name' => 'web']);
+    
+    $buyerRole = Role::firstOrCreate(['name' => 'buyer', 'guard_name' => 'web']);
+    $buyerRole->givePermissionTo('view-own-orders');
+
     $this->buyer = User::factory()->create();
     $this->buyer->assignRole('buyer');
+    $this->buyerProfile = BuyerProfile::factory()->create(['user_id' => $this->buyer->id]);
     $this->actingAs($this->buyer);
 });
 

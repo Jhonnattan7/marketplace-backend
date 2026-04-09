@@ -13,12 +13,13 @@ uses(RefreshDatabase::class);
 
 it('processes a refund, updates payment status, and restores product stock', function () {
     $user = User::factory()->create();
+    $buyerProfile = \App\Models\BuyerProfile::factory()->create(['user_id' => $user->id]);
     
     // Setup Order, Payment and its Items
     $product1 = Product::factory()->create(['stock' => 10, 'price' => 50.00]);
     $product2 = Product::factory()->create(['stock' => 5, 'price' => 20.00]);
     
-    $order = Order::factory()->create(['buyer_id' => $user->id, 'status' => 'delivered', 'total' => 120.00]);
+    $order = Order::factory()->create(['buyer_id' => $buyerProfile->id, 'status' => 'delivered', 'total' => 120.00]);
     $orderItem1 = new OrderItem(['product_id' => $product1->id, 'quantity' => 2, 'unit_price' => 50.00]);
     $orderItem1->order_id = $order->id;
     $orderItem1->save();
@@ -27,20 +28,13 @@ it('processes a refund, updates payment status, and restores product stock', fun
     $orderItem2->order_id = $order->id;
     $orderItem2->save();
     
-    // SQLite can be picky with enum check constraints if strings don't exactly match the DDL (e.g. quote issues).
-    // The marketplace context doc says method enum is 'card', 'transfer', 'cash'
-    // Let's use DB::table to bypass the eloquent issues with SQLite enums if needed, or check DDL...
-    
-    $paymentId = \Illuminate\Support\Facades\DB::table('payments')->insertGetId([
+    // Create payment using Eloquent to respect foreign keys
+    $payment = Payment::factory()->create([
         'order_id' => $order->id,
         'amount' => 120.00,
         'status' => 'completed',
-        'method' => 'credit_card',
-        'created_at' => now(),
-        'updated_at' => now(),
+        'method' => 'card', // or whatever is valid
     ]);
-
-    $payment = Payment::find($paymentId);
     
     
     // Create an approved return

@@ -38,12 +38,14 @@ class PaymentController extends Controller
      */
     public function store(StorePaymentRequest $request): JsonResponse
     {
+        $this->authorize('create', Payment::class);
+
         $validated = $request->validated();
 
         $order = Order::findOrFail($validated['order_id']);
 
         // Only the buyer of the order can pay
-        if ($order->buyer_id !== $request->user()->id) {
+        if ($order->buyer_id !== $request->user()->buyerProfile?->id) {
             return $this->errorResponse('No puedes pagar un pedido que no es tuyo.', 403);
         }
 

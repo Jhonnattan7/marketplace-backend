@@ -13,9 +13,9 @@ class RefundController extends Controller
 {
     use ApiResponse;
 
-    public function show(string $id): JsonResponse
+    public function show(Refund $refund): JsonResponse
     {
-        $refund = Refund::with('orderReturn')->findOrFail($id);
+        $refund->load('orderReturn');
         
         Gate::authorize('view', clone $refund->orderReturn);
 

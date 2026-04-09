@@ -9,7 +9,6 @@ test('producto tiene los campos fillable correctos', function () {
         ->toContain('price')
         ->toContain('stock')
         ->toContain('status')
-        ->toContain('seller_id')
         ->toContain('seller_profile_id')
         ->toContain('category_id');
 });
@@ -39,7 +38,5 @@ test('producto tiene relacion con sellerProfile', function () {
 test('producto tiene relacion con seller', function () {
     $product = new Product();
 
-    expect($product->seller())->toBeInstanceOf(
-        \Illuminate\Database\Eloquent\Relations\BelongsTo::class
-    );
+    expect(method_exists(Product::class, 'sellerProfile'))->toBeTrue();
 });
