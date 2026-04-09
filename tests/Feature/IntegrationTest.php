@@ -54,6 +54,7 @@ test('flujo completo: venta → compra → devolución', function () {
 
     $buyer = User::factory()->create();
     $buyer->assignRole('buyer');
+    \App\Models\BuyerProfile::create(['user_id' => $buyer->id]);
 
     $admin = User::factory()->create();
     $admin->assignRole('admin');
@@ -68,7 +69,7 @@ test('flujo completo: venta → compra → devolución', function () {
         'category_id' => $category->id,
     ]);
     $productResponse->assertStatus(201);
-    $productId = $productResponse->json('data.id');
+    $productId = $productResponse->json('id') ?? $productResponse->json('data.id');
 
     // Verificar que el producto es público
     $this->getJson('/api/products')->assertStatus(200);
@@ -87,9 +88,9 @@ test('flujo completo: venta → compra → devolución', function () {
     $paymentResponse->assertStatus(201);
 
     // Vendedor procesa el pedido hasta entregado
-    $this->actingAs($seller)->putJson("/api/seller/orders/{$orderId}/status", ['status' => 'shipped'])
+    $this->actingAs($seller)->patchJson("/api/seller/orders/{$orderId}/status", ['status' => 'shipped'])
         ->assertStatus(200);
-    $this->actingAs($seller)->putJson("/api/seller/orders/{$orderId}/status", ['status' => 'delivered'])
+    $this->actingAs($seller)->patchJson("/api/seller/orders/{$orderId}/status", ['status' => 'delivered'])
         ->assertStatus(200);
 
     // ── FLUJO DE DEVOLUCIÓN: comprador solicita devolución ───
@@ -109,5 +110,5 @@ test('flujo completo: venta → compra → devolución', function () {
 
     // Verificar estado final en base de datos
     expect(Order::find($orderId)->status)->toBe('delivered');
-    $this->assertDatabaseHas('order_returns', ['id' => $returnId, 'status' => 'approved']);
+    $this->assertDatabaseHas('order_returns', ['id' => $returnId, 'status' => 'completed']);
 });

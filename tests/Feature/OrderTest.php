@@ -63,6 +63,7 @@ beforeEach(function () {
 function createBuyer(): User
 {
     $user = User::factory()->create();
+    \App\Models\BuyerProfile::factory()->create(['user_id' => $user->id]);
     $user->assignRole('buyer');
     return $user;
 }
@@ -181,7 +182,7 @@ test('comprador puede listar sus pedidos', function () {
 
     // Create 1 order for another buyer (should not appear)
     $otherBuyer = createBuyer();
-    Order::factory()->create(['buyer_id' => $otherBuyer->id, 'total' => 50]);
+    Order::factory()->create(['buyer_id' => $otherBuyer->buyerProfile->id, 'total' => 50]);
 
     $response = $this->actingAs($buyer)->getJson('/api/orders');
 

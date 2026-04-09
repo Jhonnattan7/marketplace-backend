@@ -11,7 +11,7 @@ info:
 servers:
   - url: http://localhost:8000
     description: Local development server
-  - url: https://api.marketplace.com
+  - url: https://marketplace-backend.test
     description: Production server
 
 tags:
